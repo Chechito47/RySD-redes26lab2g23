@@ -126,8 +126,52 @@ class Connection:
         self._send_line(str(size))
 
     def _handle_get_slice(self, args: list[str]) -> None:
-        # respuesta provisional
-        self._send_status(INVALID_COMMAND)
+        if len(args) != 3:
+            self._send_status(INVALID_ARGUMENTS)
+            return
+
+        filename = args[0]
+        if not self._is_valid_filename(filename):
+            self._send_status(INVALID_ARGUMENTS)
+            return
+
+        try:
+            offset = int(args[1])
+            size = int(args[2])
+        except ValueError:
+            self._send_status(INVALID_ARGUMENTS)
+            return
+
+        if offset < 0 or size < 0:
+            self._send_status(INVALID_ARGUMENTS)
+            return
+
+        path = os.path.join(self.directory, filename)
+        if not os.path.isfile(path):
+            self._send_status(FILE_NOT_FOUND)
+            return
+
+        try:
+            file_size = os.path.getsize(path)
+            if offset + size > file_size:
+                self._send_status(BAD_OFFSET)
+                return
+
+            with open(path, "rb") as f:
+                f.seek(offset)
+                data = f.read(size)
+        except OSError:
+            self._send_status(INTERNAL_ERROR)
+            return
+
+        if len(data) != size:
+            self._send_status(INTERNAL_ERROR)
+            return
+
+        self._send_status(CODE_OK)
+        if self.closed:
+            return
+        self._send_line(b64encode(data).decode("ascii"))
 
     def _dispatch(self, line: str) -> None:
         parts = line.split()

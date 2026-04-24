@@ -90,3 +90,64 @@ Ran 8 tests in 0.002s
 
 OK
 ```
+
+## Testeos parte C 
+### Para los testeos manuales de la parte C: 
+
+```bash
+#Activar entorno virtual 
+source venv/bin/activate
+
+#Crear la carpeta 
+mkdir testdata
+
+#Crear archivo de prueba
+gedit pruebaC &
+# Escribir un poco de texto, ctrl+s y cerrar
+
+#Levantar servidor 
+python3 server.py -d testdata -p 19500
+```
+En otra pestaña, ejecutar el cliente:
+
+```bash
+telnet localhost 19500
+```
+Probar el nuevo comando: 
+* `get_slice pruebaC 0 4` para ver cómo el servidor responde con el `0 OK` y el bloque de texto crudo en base64
+
+Y por otro lado ejecutar: 
+
+```bash
+python3 client.py -p 19500 localhost
+
+#Ingresar el nombre del archivo creado
+pruebaC
+
+#Correr un ls
+ls 
+```
+Debería verse el archivo de la carpeta testdata en el nuevo directorio! (por favor no commitearlo)
+
+### Para los testeos de la cátedra: 
+
+Con el servidor arriba, ejecutar en otra pestaña: 
+
+```bash
+python3 server-test.py TestHFTPServer.test_get_full_slice TestHFTPServer.test_partial_slices TestHFTPServer.test_retrieve_full_file
+```
+
+En esta etapa se obtuvo: 
+
+```text
+In method test_get_full_slice:
+.
+In method test_partial_slices:
+.
+In method test_retrieve_full_file:
+.
+----------------------------------------------------------------------
+Ran 3 tests in 0.167s
+
+OK
+```
