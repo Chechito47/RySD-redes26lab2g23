@@ -9,6 +9,7 @@
 import argparse
 import socket
 import sys
+#import threading
 import connection
 from constants import DEFAULT_ADDR, DEFAULT_DIR, DEFAULT_PORT
 
@@ -26,8 +27,11 @@ class Server:
         directory: str = DEFAULT_DIR,
     ) -> None:
         print(f"Serving {directory} on {addr}:{port}.")
-        # FALTA: Crear socket del servidor, configurarlo, asignarlo
-        # a una dirección y puerto, etc.
+        self.directory = directory
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.sock.bind((addr, port))
+        self.sock.listen()
 
     def serve(self) -> None:
         """
@@ -35,9 +39,11 @@ class Server:
         y se espera a que concluya antes de seguir.
         """
         while True:
-            pass
-            # FALTA: Aceptar una conexión al server, crear una
-            # Connection para la conexión y atenderla hasta que termine.
+            client_sock, client_addr = self.sock.accept()
+            print(f"Conexión recibida de {client_addr}")
+            conn = connection.Connection(client_sock, self.directory)
+            conn.handle()
+            #threading.Thread(target=conn.handle, daemon=True).start()
 
 
 def main() -> None:
