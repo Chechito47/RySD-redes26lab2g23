@@ -103,30 +103,9 @@ class Connection:
         names.sort()
         self._send_ok_with_payload(names)
 
-    def _handle_get_metadata(self, args: list[str]) -> None:
-        if len(args) != 1:
-            self._send_status(INVALID_ARGUMENTS)
-            return
-        filename = args[0]
-        if not self._is_valid_filename(filename):
-            self._send_status(INVALID_ARGUMENTS)
-            return
-        path = os.path.join(self.directory, filename)
-        if not os.path.isfile(path):
-            self._send_status(FILE_NOT_FOUND)
-            return
-        try:
-            size = os.path.getsize(path)
-        except OSError:
-            self._send_status(INTERNAL_ERROR)
-            return
-        self._send_status(CODE_OK)
-        if self.closed:
-            return
-        self._send_line(str(size))
-
     def _handle_get_slice(self, args: list[str]) -> None:
-        if len(args) != 3:
+        # Acepta 3 argumentos (base64) o 4 (raw)
+        if len(args) not in (3, 4):
             self._send_status(INVALID_ARGUMENTS)
             return
 
@@ -134,6 +113,14 @@ class Connection:
         if not self._is_valid_filename(filename):
             self._send_status(INVALID_ARGUMENTS)
             return
+
+        # Si hay cuarto argumento debe ser  "raw"
+        raw_mode = False
+        if len(args) == 4:
+            if args[3] != "raw":
+                self._send_status(INVALID_ARGUMENTS)
+                return
+            raw_mode = True
 
         try:
             offset = int(args[1])
@@ -171,7 +158,13 @@ class Connection:
         self._send_status(CODE_OK)
         if self.closed:
             return
-        self._send_line(b64encode(data).decode("ascii"))
+
+        if raw_mode:
+            # Content-Length: N\r\n  +  \r\n  +  N bytes binarios
+            header = f"{CONTENT_LENGTH_PREFIX}{size}{EOL}{EOL}"
+            self.sock.sendall(header.encode("ascii") + data)
+        else:
+            self._send_line(b64encode(data).decode("ascii"))
 
     def _dispatch(self, line: str) -> None:
         parts = line.split()
