@@ -70,17 +70,56 @@ class Connection:
         return True
 
     def _next_line(self) -> str | None:
-        """Devuelve una línea completa sin CRLF, o None si aún no hay datos."""
+        """
+        Devuelve la siguiente línea completa sin CRLF, o None si todavía
+        no llegaron suficientes datos.
+        Envía BAD_EOL (100) y retorna "" si encuentra \\n sin \\r previo.
+        """
         while True:
             pos = self.buffer.find(b"\n")
             if pos == -1:
-                return None
+                return None  # todavía no hay línea completa
+
+            # \n suelto
             if pos == 0 or self.buffer[pos - 1 : pos] != b"\r":
                 self._send_status(BAD_EOL)
+                return ""   # señal de error 
+
+            raw = self.buffer[: pos - 1]   # sin el \r
+            self.buffer = self.buffer[pos + 1 :]  # descarta hasta después del \n
+
+            # Protección contra líneas enormes
+            if len(raw) > 4096:
+                self._send_status(BAD_REQUEST)
                 return ""
-            raw = self.buffer[: pos - 1]
-            self.buffer = self.buffer[pos + 1 :]
-            return raw.decode("ascii", errors="strict")
+
+            try:
+                return raw.decode("ascii")
+            except UnicodeDecodeError:
+                self._send_status(BAD_REQUEST)
+                return ""
+    
+    def _handle_get_metadata(self, args: list[str]) -> None:
+        if len(args) != 1:
+            self._send_status(INVALID_ARGUMENTS)
+            return
+        filename = args[0]
+        if not self._is_valid_filename(filename):
+            self._send_status(INVALID_ARGUMENTS)
+            return
+        path = os.path.join(self.directory, filename)
+        if not os.path.isfile(path):
+            self._send_status(FILE_NOT_FOUND)
+            return
+        try:
+            size = os.path.getsize(path)
+        except OSError:
+            self._send_status(INTERNAL_ERROR)
+            return
+        self._send_status(CODE_OK)
+        if self.closed:
+            return
+        self._send_line(str(size))
 
     def _is_valid_filename(self, filename: str) -> bool:
         return bool(filename) and all(ch in VALID_CHARS for ch in filename)
@@ -202,21 +241,28 @@ class Connection:
         self._send_status(INVALID_COMMAND)
 
     def handle(self) -> None:
-        """
-        Atiende eventos de la conexión hasta que termina.
-        """
         try:
             while not self.closed:
                 line = self._next_line()
+
                 if line is None:
                     if not self._read_chunk():
                         break
                     continue
+
                 if line == "":
                     break
+
+                # comando irreconocible
+                stripped = line.strip()
+                if not stripped:
+                    self._send_status(BAD_REQUEST)
+                    # BAD_REQUEST (101)
+                    break
+
                 self._dispatch(line)
-        except (UnicodeDecodeError, OSError):
-            if not self.closed:
-                self._send_status(BAD_REQUEST)
+
+        except OSError:
+            pass  # socket cerrado por el otro lado
         finally:
             self._close()
