@@ -89,7 +89,7 @@ class Connection:
             self.buffer = self.buffer[pos + 1 :]  # descarta hasta después del \n
 
             # Protección contra líneas enormes
-            if len(raw) > 4096:
+            if len(raw) > 65536:
                 self._send_status(BAD_REQUEST)
                 return ""
 
@@ -251,6 +251,7 @@ class Connection:
                     continue
 
                 if line == "":
+                    self._send_status(BAD_REQUEST)
                     break
 
                 # comando irreconocible
