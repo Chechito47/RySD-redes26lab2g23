@@ -275,9 +275,88 @@ torsocks python3 client.py -p 19500 <tu_direccion.onion>
 # Es necesario que haya algun archivo en el directorio "testdata" del servidor
 ```
 
-## Testeos generales
-### Para los testeos generales:
+## Testeo general
+### Para el testeo general:
 Con el servidor arriba, ejecutar en otra pestaña:
+```bash
+python3 server-test.py
+```
+Se obtuvo:
+```text
+n method test_bad_argument_count:
+.
+In method test_bad_argument_count_2:
+.
+In method test_bad_argument_type:
+.
+In method test_bad_command:
+.
+In method test_bad_eol:
+.
+In method test_bad_offset:
+.
+In method test_empty_command_line_bad_request:
+.
+In method test_file_not_found:
+.
+In method test_file_not_found_get_slice:
+.
+In method test_internal_error_unreadable_file:
+.
+In method test_big_file:
+.
+In method test_big_filename:
+.
+In method test_command_in_pieces:
+.
+In method test_data_with_nulls:
+.
+In method test_long_file_listing:
+.
+In method test_multiple_commands:
+.
+In method test_two_concurrent_file_listing:
+.
+In method test_two_concurrent_help:
+.
+In method test_connect_and_quit:
+.
+In method test_context_manager:
+.
+In method test_empty_file_listing:
+.
+In method test_get_full_slice:
+.
+In method test_get_metadata:
+.
+In method test_get_metadata_empty:
+.
+In method test_get_slice_raw:
+.
+In method test_get_slice_raw_partial:
+.
+In method test_get_slice_rejects_bad_raw_token:
+.
+In method test_help:
+.
+In method test_lookup:
+.
+In method test_partial_slices:
+.
+In method test_quit_answers_ok:
+.
+In method test_retrieve_full_file:
+.
+----------------------------------------------------------------------
+Ran 32 tests in 1.787s
+
+OK
+```
+
+## Autoevaluacion
+### Para la autoevaluacion:
+Con el servidor arriba, ejecutar en otra pestaña:
+
 ```bash
 pytest -v
 ```
@@ -323,6 +402,7 @@ test_metrics.py::test_coverage_is_checked_by_grade_py PASSED             [100%]
 ============================== 35 passed in 2.06s ==============================
 ```
 
+### Resumen único
 Luego, cerrando el servidor ejecutar:
 ```bash
 python3 grade.py
