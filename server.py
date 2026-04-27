@@ -9,7 +9,7 @@
 import argparse
 import socket
 import sys
-#import threading
+import threading
 import connection
 from constants import DEFAULT_ADDR, DEFAULT_DIR, DEFAULT_PORT
 
@@ -42,8 +42,7 @@ class Server:
             client_sock, client_addr = self.sock.accept()
             print(f"Conexión recibida de {client_addr}")
             conn = connection.Connection(client_sock, self.directory)
-            conn.handle()
-            #threading.Thread(target=conn.handle, daemon=True).start()
+            threading.Thread(target=conn.handle, daemon=True).start()
 
 
 def main() -> None:
