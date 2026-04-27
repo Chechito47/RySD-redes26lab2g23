@@ -151,3 +151,200 @@ Ran 3 tests in 0.167s
 
 OK
 ```
+
+## Testeos parte D
+### Para los testeos de la cátedra:
+Con el servidor arriba, ejecutar en otra pestaña:
+```bash
+python3 server-test.py TestHFTPServer.test_get_slice_raw TestHFTPServer.test_get_slice_raw_partial TestHFTPServer.test_get_slice_rejects_bad_raw_token
+```
+En esta etapa se obtuvo:
+
+```text
+In method test_get_slice_raw:
+.
+In method test_get_slice_raw_partial:
+.
+In method test_get_slice_rejects_bad_raw_token:
+.
+----------------------------------------------------------------------
+Ran 3 tests in 0.004s
+
+OK
+```
+
+## Testeos parte E
+### Para los testeos de la cátedra:
+Con el servidor arriba, ejecutar en otra pestaña:
+```bash
+python3 server-test.py TestHFTPErrors TestHFTPHard
+```
+En esta etapa se obtuvo:
+
+```text
+In method test_bad_argument_count:
+.
+In method test_bad_argument_count_2:
+.
+In method test_bad_argument_type:
+.
+In method test_bad_command:
+.
+In method test_bad_eol:
+.
+In method test_bad_offset:
+.
+In method test_empty_command_line_bad_request:
+.
+In method test_file_not_found:
+.
+In method test_file_not_found_get_slice:
+.
+In method test_internal_error_unreadable_file:
+.
+In method test_big_file:
+.
+In method test_big_filename:
+.
+In method test_command_in_pieces:
+.
+In method test_data_with_nulls:
+.
+In method test_long_file_listing:
+.
+In method test_multiple_commands:
+.
+----------------------------------------------------------------------
+Ran 16 tests in 1.399s
+
+OK
+```
+
+## Testeos parte F
+### Para los testeos de la cátedra:
+Con el servidor arriba, ejecutar en otra pestaña:
+```bash
+python3 server-test.py TestHFTPMultiClient
+```
+En esta etapa se obtuvo:
+
+```text
+In method test_two_concurrent_file_listing:
+.
+In method test_two_concurrent_help:
+.
+----------------------------------------------------------------------
+Ran 2 tests in 0.004s
+
+OK
+```
+
+## Testeos parte G
+### Configuración de Tor:
+```bash
+# Instalar Tor y torsocks
+sudo apt install tor torsocks
+ 
+# Configuramos el servicio en /etc/tor/torrc
+sudo nano /etc/tor/torrc
+# Agregamos al final esto:
+HiddenServiceDir /var/lib/tor/hftp_service/
+HiddenServicePort 19500 127.0.0.1:19500
+ 
+# Reiniciar Tor
+sudo systemctl restart tor@default
+ 
+# Obtener dirección .onion
+sudo cat /var/lib/tor/hftp_service/hostname
+```
+### Testeos de Tor:
+```bash
+export ONION=tu_direccion.onion
+make test-tor
+```
+
+### Pruebas de extremo a extremo:
+```bash
+# Terminal 1 - servidor:
+python server.py -d testdata -p 19500 -a 127.0.0.1
+ 
+# Terminal 2 - cliente:
+torsocks python3 client.py -p 19500 <tu_direccion.onion>
+# Cliente elige que archivo descargar
+
+# Es necesario que haya algun archivo en el directorio "testdata" del servidor
+```
+
+## Testeos generales
+### Para los testeos generales:
+Con el servidor arriba, ejecutar en otra pestaña:
+```bash
+pytest -v
+```
+Se obtuvo:
+
+```text
+server-test.py::TestHFTPServer::test_connect_and_quit PASSED             [  2%]
+server-test.py::TestHFTPServer::test_context_manager PASSED              [  5%]
+server-test.py::TestHFTPServer::test_empty_file_listing PASSED           [  8%]
+server-test.py::TestHFTPServer::test_get_full_slice PASSED               [ 11%]
+server-test.py::TestHFTPServer::test_get_metadata PASSED                 [ 14%]
+server-test.py::TestHFTPServer::test_get_metadata_empty PASSED           [ 17%]
+server-test.py::TestHFTPServer::test_get_slice_raw PASSED                [ 20%]
+server-test.py::TestHFTPServer::test_get_slice_raw_partial PASSED        [ 22%]
+server-test.py::TestHFTPServer::test_get_slice_rejects_bad_raw_token PASSED [ 25%]
+server-test.py::TestHFTPServer::test_help PASSED                         [ 28%]
+server-test.py::TestHFTPServer::test_lookup PASSED                       [ 31%]
+server-test.py::TestHFTPServer::test_partial_slices PASSED               [ 34%]
+server-test.py::TestHFTPServer::test_quit_answers_ok PASSED              [ 37%]
+server-test.py::TestHFTPServer::test_retrieve_full_file PASSED           [ 40%]
+server-test.py::TestHFTPErrors::test_bad_argument_count PASSED           [ 42%]
+server-test.py::TestHFTPErrors::test_bad_argument_count_2 PASSED         [ 45%]
+server-test.py::TestHFTPErrors::test_bad_argument_type PASSED            [ 48%]
+server-test.py::TestHFTPErrors::test_bad_command PASSED                  [ 51%]
+server-test.py::TestHFTPErrors::test_bad_eol PASSED                      [ 54%]
+server-test.py::TestHFTPErrors::test_bad_offset PASSED                   [ 57%]
+server-test.py::TestHFTPErrors::test_empty_command_line_bad_request PASSED [ 60%]
+server-test.py::TestHFTPErrors::test_file_not_found PASSED               [ 62%]
+server-test.py::TestHFTPErrors::test_file_not_found_get_slice PASSED     [ 65%]
+server-test.py::TestHFTPErrors::test_internal_error_unreadable_file PASSED [ 68%]
+server-test.py::TestHFTPMultiClient::test_two_concurrent_file_listing PASSED [ 71%]
+server-test.py::TestHFTPMultiClient::test_two_concurrent_help PASSED     [ 74%]
+server-test.py::TestHFTPHard::test_big_file PASSED                       [ 77%]
+server-test.py::TestHFTPHard::test_big_filename PASSED                   [ 80%]
+server-test.py::TestHFTPHard::test_command_in_pieces PASSED              [ 82%]
+server-test.py::TestHFTPHard::test_data_with_nulls PASSED                [ 85%]
+server-test.py::TestHFTPHard::test_long_file_listing PASSED              [ 88%]
+server-test.py::TestHFTPHard::test_multiple_commands PASSED              [ 91%]
+test_metrics.py::test_cyclomatic_complexity PASSED                       [ 94%]
+test_metrics.py::test_static_analysis_ruff PASSED                        [ 97%]
+test_metrics.py::test_coverage_is_checked_by_grade_py PASSED             [100%]
+
+============================== 35 passed in 2.06s ==============================
+```
+
+Luego, cerrando el servidor ejecutar:
+```bash
+python3 grade.py
+```
+Se obtuvo:
+
+```text
+============================================================
+  Lab 2 — Autoevaluación (grade.py)
+============================================================
+
+1. Tests y cobertura (servidor bajo coverage) ... OK
+    Tests OK. Cobertura connection+server: 84.0% (mínimo 75%).
+
+2. Complejidad ciclomática ... OK
+    Ninguna función supera complejidad 17.
+
+3. Análisis estático (ruff) ... OK
+    Ruff: sin errores en connection.py ni server.py.
+
+============================================================
+  RESULTADO: CUMPLE todas las condiciones de aprobación
+============================================================
+```
+
