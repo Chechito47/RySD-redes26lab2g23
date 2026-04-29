@@ -7,6 +7,10 @@
 
 Este proyecto consiste en el diseño e implementación de un servidor de archivos robusto que utiliza el protocolo **HFTP** (Home-made File Transfer Protocol) sobre TCP.
 
+## Video de defensa:
+[Link al video](https://drive.google.com/file/d/1xHo_KvawRaaxXOIAPJk0Xrl0PuOMhzOP/view?usp=sharing)
+
+
 ## Requisitos
 * Python 3
 * Entorno Linux/Ubuntu 
